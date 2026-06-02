@@ -1,0 +1,4 @@
+FROM ghcr.io/mlflow/mlflow:latest
+LABEL Maintainer="Devops"
+# Installation des drivers pour PostgreSQL (Base de données) et MinIO (S3)
+RUN pip install boto3 psycopg2-binary

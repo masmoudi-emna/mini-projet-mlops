@@ -1,0 +1,3 @@
+FROM jupyter/datascience-notebook:latest
+# Le Data Scientist a besoin de mlflow et des connecteurs pour l'infrastructure
+RUN pip install mlflow boto3 psycopg2-binary scikit-learn pandas

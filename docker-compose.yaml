@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. Base de données PostgreSQL pour MLflow
+  postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=mlflow_user
+      - POSTGRES_PASSWORD=mlflow_password
+      - POSTGRES_DB=mlflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Stockage d'artéfacts MinIO (S3 local)
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=mlflow
+      - MINIO_ROOT_PASSWORD=password
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  # 3. Serveur de tracking MLflow
+  mlflow-web:
+    image: ghcr.io/mlflow/mlflow:v2.11.3
+    container_name: mini-projet-mlops-mlflow-web-1
+    ports:
+      - "5000:5000"
+    environment:
+      - AWS_ACCESS_KEY_ID=mlflow
+      - AWS_SECRET_ACCESS_KEY=password
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+    command: mlflow server --backend-store-uri postgresql://mlflow_user:mlflow_password@postgres:5432/mlflow_db --default-artifact-root s3://mlflow-bucket --host 0.0.0.0 --port 5000
+    depends_on:
+      - postgres
+      - minio
+
+volumes:
+  postgres_data:
+  minio_data:
